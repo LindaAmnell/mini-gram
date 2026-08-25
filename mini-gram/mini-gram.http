@@ -1,0 +1,6 @@
+@mini_gram_HostAddress = http://localhost:5263
+
+GET {{mini_gram_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

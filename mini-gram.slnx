@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="mini-gram/mini-gram.csproj" />
+  <Project Path="mini-gramUI/mini-gramUI.csproj" />
+</Solution>
