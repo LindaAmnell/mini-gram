@@ -16,8 +16,10 @@
 
 using Azure.Identity;
 using Azure.Storage.Blobs;
+using mini_gram.Models;
 using System.Text;
 using System.Text.Json;
+using mini_gram.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,6 +27,9 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddControllers();
 
+// ======================================================
+// Key Vault
+// ======================================================
 
 var keyVaultUrl = builder.Configuration["keyVaultURL"];
 var keyvaulturi = new Uri(keyVaultUrl!);
@@ -34,15 +39,22 @@ builder.Configuration.AddAzureKeyVault(
     new DefaultAzureCredential()
 );
 
+
+// ======================================================
+// Blob Storage
+// ======================================================
+
 var blobConnString = builder.Configuration["blobkey"];
 
-builder.Services.AddSingleton(x => new BlobServiceClient(blobConnString));
+builder.Services.AddSingleton(x =>
+    new BlobServiceClient(blobConnString));
+
+builder.Services.AddSingleton<BlobStorageService>();
+builder.Services.AddSingleton<BildService>();
 
 // CORS — hanteras primärt i Azure Portal: App Service → API → CORS
 // Lägg till din frontend-URL där, så slipper du ändra och redeploya koden.
 // Den här koden hanterar CORS lokalt under utveckling.
-
-//Hej 
 
 builder.Services.AddCors(options =>
 {
@@ -61,76 +73,97 @@ var app = builder.Build();
 
 app.UseSwagger();
 app.UseSwaggerUI();
+
 app.UseCors("MinGramPolicy");
-
-// -------------------------------------------------------
-// In-memory datastore med seed-data
-// Datan nollställs vid omstart — en riktig app lagrar bilder i Blob Storage
-// -------------------------------------------------------
-
-var bilder = new List<Bild>
-{
-    new(1, "demo.jpg", "Demobild — ersätt med din egen", ["demo", "placeholder"],
-        "https://placehold.co/400x300?text=MinGram")
-};
-var nastaBildId = 2;
 
 // ======================================================
 // Bilder
 // ======================================================
 
 // Alla roller får se bilder
-app.MapGet("/bilder", () => bilder)
-   .WithName("HamtaBilder")
-   .WithSummary("Hämta alla bilder — alla roller");
-
-app.MapGet("/bilder/{id:int}", (int id) =>
+app.MapGet("/bilder", (BildService bildService) =>
 {
-    var b = bilder.FirstOrDefault(b => b.Id == id);
-    return b is not null ? Results.Ok(b) : Results.NotFound();
+    return Results.Ok(bildService.HamtaAlla());
+})
+.WithName("HamtaBilder")
+.WithSummary("Hämta alla bilder — alla roller");
+
+
+// Alla roller får hämta en specifik bild
+app.MapGet("/bilder/{id:int}", (int id, BildService bildService) =>
+{
+    var bild = bildService.HamtaMedId(id);
+
+    return bild is not null
+        ? Results.Ok(bild)
+        : Results.NotFound();
 })
 .WithName("HamtaBild")
 .WithSummary("Hämta en specifik bild — alla roller");
 
 // Fotograf och Admin får ladda upp bilder
 // Skicka URL:en till bilden — lagra filen i Azure Blob Storage och använd den URL:en här
-app.MapPost("/bilder", (NyBild ny, HttpRequest req) =>
+// URL:en till blobben sparas sedan i Bild-objektet.
+app.MapPost("/bilder", async (
+    IFormFile fil,
+    string caption,
+    string? taggar,
+    HttpRequest req,
+    BildService bildService) =>
 {
-    if (!HarBehorighet(HamtaRoll(req), "Fotograf")) return Results.StatusCode(403);
-    var b = new Bild(nastaBildId++, ny.Namn, ny.Caption, ny.Taggar ?? [], ny.Url);
-    bilder.Add(b);
-    return Results.Created($"/bilder/{b.Id}", b);
+    if (!HarBehorighet(HamtaRoll(req), "Fotograf"))
+        return Results.StatusCode(403);
+
+    var bild = await bildService.SkapaBildAsync(
+        fil,
+        caption,
+        taggar
+    );
+
+    return Results.Created($"/bilder/{bild.Id}", bild);
 })
+.DisableAntiforgery()
 .WithName("LaddaUppBild")
-.WithSummary("Lägg till bild — kräver Fotograf eller Admin");
+.WithSummary("Ladda upp bild — kräver Fotograf eller Admin");
+
 
 // Fotograf och Admin får uppdatera caption och taggar
-app.MapPut("/bilder/{id:int}", (int id, BildUpdate update, HttpRequest req) =>
+app.MapPut("/bilder/{id:int}", (
+    int id,
+    BildUpdate update,
+    HttpRequest req,
+    BildService bildService) =>
 {
-    if (!HarBehorighet(HamtaRoll(req), "Fotograf")) return Results.StatusCode(403);
-    var index = bilder.FindIndex(b => b.Id == id);
-    if (index < 0) return Results.NotFound();
-    bilder[index] = bilder[index] with
-    {
-        Caption = update.Caption ?? bilder[index].Caption,
-        Taggar = update.Taggar ?? bilder[index].Taggar
-    };
-    return Results.Ok(bilder[index]);
+    if (!HarBehorighet(HamtaRoll(req), "Fotograf"))
+        return Results.StatusCode(403);
+
+    var bild = bildService.UppdateraBild(id, update);
+
+    return bild is not null
+        ? Results.Ok(bild)
+        : Results.NotFound();
 })
 .WithName("UppdateraBild")
 .WithSummary("Uppdatera bild — kräver Fotograf eller Admin");
 
 // Bara Admin får ta bort bilder — testa med Postman som Betraktare för att se 403
-app.MapDelete("/bilder/{id:int}", (int id, HttpRequest req) =>
+app.MapDelete("/bilder/{id:int}", async (
+    int id,
+    HttpRequest req,
+    BildService bildService) =>
 {
-    if (!HarBehorighet(HamtaRoll(req), "Admin")) return Results.StatusCode(403);
-    var b = bilder.FirstOrDefault(b => b.Id == id);
-    if (b is null) return Results.NotFound();
-    bilder.Remove(b);
-    return Results.NoContent();
+    if (!HarBehorighet(HamtaRoll(req), "Admin"))
+        return Results.StatusCode(403);
+
+    var borttagen = await bildService.RaderaBildAsync(id);
+
+    return borttagen
+        ? Results.NoContent()
+        : Results.NotFound();
 })
 .WithName("RaderaBild")
 .WithSummary("Radera bild — kräver Admin");
+
 
 app.Run();
 
@@ -169,12 +202,3 @@ bool HarBehorighet(string roll, string kravRoll) => (roll, kravRoll) switch
     ("Admin", "Admin") => true,
     _ => false
 };
-
-// ======================================================
-// Datamodeller
-// ======================================================
-
-record Bild(int Id, string Namn, string Caption, List<string> Taggar, string Url);
-
-record NyBild(string Namn, string Caption, List<string>? Taggar, string Url);
-record BildUpdate(string? Caption, List<string>? Taggar);
