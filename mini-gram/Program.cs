@@ -14,6 +14,8 @@
 //
 // Bilder lagras som URL:er — ladda upp till Azure Blob Storage och skicka URL:en hit.
 
+using Azure.Identity;
+using Azure.Storage.Blobs;
 using System.Text;
 using System.Text.Json;
 
@@ -21,6 +23,20 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddControllers();
+
+
+var keyVaultUrl = builder.Configuration["keyVaultURL"];
+var keyvaulturi = new Uri(keyVaultUrl!);
+
+builder.Configuration.AddAzureKeyVault(
+    keyvaulturi,
+    new DefaultAzureCredential()
+);
+
+var blobConnString = builder.Configuration["blobkey"];
+
+builder.Services.AddSingleton(x => new BlobServiceClient(blobConnString));
 
 // CORS — hanteras primärt i Azure Portal: App Service → API → CORS
 // Lägg till din frontend-URL där, så slipper du ändra och redeploya koden.
