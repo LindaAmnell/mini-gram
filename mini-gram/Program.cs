@@ -12,14 +12,16 @@
 //    Skapa rollerna Betraktare, Fotograf, Admin.
 //    Tilldela dem till dina Entra ID-användare under Enterprise applications.
 //
-// Bilder lagras som URL:er — ladda upp till Azure Blob Storage och skicka URL:en hit.
+// Bilder lagras i Azure Blob Storage.
+// Caption och taggar sparas som metadata på blobben.
 
+using Azure.Core;
 using Azure.Identity;
 using Azure.Storage.Blobs;
 using mini_gram.Models;
+using mini_gram.Services;
 using System.Text;
 using System.Text.Json;
-using mini_gram.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -34,10 +36,25 @@ builder.Services.AddControllers();
 var keyVaultUrl = builder.Configuration["keyVaultURL"];
 var keyvaulturi = new Uri(keyVaultUrl!);
 
+TokenCredential credential;
+
+if (builder.Environment.IsDevelopment())
+{
+    credential = new AzureCliCredential();
+}
+else
+{
+    credential = new DefaultAzureCredential();
+}
+
+Console.WriteLine("FÖRE KEY VAULT");
+
 builder.Configuration.AddAzureKeyVault(
     keyvaulturi,
-    new DefaultAzureCredential()
+    credential
 );
+
+Console.WriteLine("EFTER KEY VAULT");
 
 
 // ======================================================
@@ -81,18 +98,22 @@ app.UseCors("MinGramPolicy");
 // ======================================================
 
 // Alla roller får se bilder
-app.MapGet("/bilder", (BildService bildService) =>
+app.MapGet("/bilder", async (BildService bildService) =>
 {
-    return Results.Ok(bildService.HamtaAlla());
+    var bilder = await bildService.HamtaAllaAsync();
+
+    return Results.Ok(bilder);
 })
 .WithName("HamtaBilder")
 .WithSummary("Hämta alla bilder — alla roller");
 
 
 // Alla roller får hämta en specifik bild
-app.MapGet("/bilder/{id:int}", (int id, BildService bildService) =>
+app.MapGet("/bilder/{namn}", async (
+    string namn,
+    BildService bildService) =>
 {
-    var bild = bildService.HamtaMedId(id);
+    var bild = await bildService.HamtaEnAsync(namn);
 
     return bild is not null
         ? Results.Ok(bild)
@@ -102,7 +123,7 @@ app.MapGet("/bilder/{id:int}", (int id, BildService bildService) =>
 .WithSummary("Hämta en specifik bild — alla roller");
 
 // Fotograf och Admin får ladda upp bilder
-// Skicka URL:en till bilden — lagra filen i Azure Blob Storage och använd den URL:en här
+// Filen laddas upp till Azure Blob Storage.
 // URL:en till blobben sparas sedan i Bild-objektet.
 app.MapPost("/bilder", async (
     IFormFile fil,
@@ -120,7 +141,7 @@ app.MapPost("/bilder", async (
         taggar
     );
 
-    return Results.Created($"/bilder/{bild.Id}", bild);
+    return Results.Created($"/bilder/{bild.Namn}", bild);
 })
 .DisableAntiforgery()
 .WithName("LaddaUppBild")
@@ -128,8 +149,8 @@ app.MapPost("/bilder", async (
 
 
 // Fotograf och Admin får uppdatera caption och taggar
-app.MapPut("/bilder/{id:int}", (
-    int id,
+app.MapPut("/bilder/{namn}", async (
+    string namn,
     BildUpdate update,
     HttpRequest req,
     BildService bildService) =>
@@ -137,7 +158,7 @@ app.MapPut("/bilder/{id:int}", (
     if (!HarBehorighet(HamtaRoll(req), "Fotograf"))
         return Results.StatusCode(403);
 
-    var bild = bildService.UppdateraBild(id, update);
+    var bild = await bildService.UppdateraBildAsync(namn, update);
 
     return bild is not null
         ? Results.Ok(bild)
@@ -147,15 +168,15 @@ app.MapPut("/bilder/{id:int}", (
 .WithSummary("Uppdatera bild — kräver Fotograf eller Admin");
 
 // Bara Admin får ta bort bilder — testa med Postman som Betraktare för att se 403
-app.MapDelete("/bilder/{id:int}", async (
-    int id,
+app.MapDelete("/bilder/{namn}", async (
+    string namn,
     HttpRequest req,
     BildService bildService) =>
 {
     if (!HarBehorighet(HamtaRoll(req), "Admin"))
         return Results.StatusCode(403);
 
-    var borttagen = await bildService.RaderaBildAsync(id);
+    var borttagen = await bildService.RaderaBildAsync(namn);
 
     return borttagen
         ? Results.NoContent()

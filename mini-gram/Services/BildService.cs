@@ -6,50 +6,29 @@ public class BildService
 {
     private readonly BlobStorageService _blobStorageService;
 
-    private readonly List<Bild> _bilder =
-    [
-        new Bild(
-            1,
-            "demo.jpg",
-            "Demobild — ersätt med din egen",
-            ["demo", "placeholder"],
-            "https://placehold.co/400x300?text=MinGram"
-        )
-    ];
-
-    private int _nastaBildId = 2;
-
     public BildService(BlobStorageService blobStorageService)
     {
         _blobStorageService = blobStorageService;
     }
 
-    // Hämta alla bilder
-    public List<Bild> HamtaAlla()
+    // GET alla
+    public async Task<List<Bild>> HamtaAllaAsync()
     {
-        return _bilder;
+        return await _blobStorageService.HamtaAllaAsync();
     }
 
-    // Hämta en bild
-    public Bild? HamtaMedId(int id)
+    // GET en
+    public async Task<Bild?> HamtaEnAsync(string namn)
     {
-        return _bilder.FirstOrDefault(b => b.Id == id);
+        return await _blobStorageService.HamtaEnAsync(namn);
     }
 
-    // Ladda upp och skapa en bild
+    // POST
     public async Task<Bild> SkapaBildAsync(
         IFormFile fil,
         string caption,
         string? taggar)
     {
-        using var stream = fil.OpenReadStream();
-
-        var url = await _blobStorageService.UploadAsync(
-            fil.FileName,
-            stream,
-            fil.ContentType
-        );
-
         var taggLista = string.IsNullOrWhiteSpace(taggar)
             ? new List<string>()
             : taggar
@@ -57,48 +36,37 @@ public class BildService
                 .Select(t => t.Trim())
                 .ToList();
 
-        var bild = new Bild(
-            _nastaBildId++,
+        using var stream = fil.OpenReadStream();
+
+        var url = await _blobStorageService.UploadAsync(
+            fil.FileName,
+            stream,
+            fil.ContentType,
+            caption,
+            taggLista
+        );
+
+        return new Bild(
+       
             fil.FileName,
             caption,
             taggLista,
             url
         );
-
-        _bilder.Add(bild);
-
-        return bild;
     }
 
-    // Uppdatera caption och taggar
-    public Bild? UppdateraBild(int id, BildUpdate update)
+    // PUT
+    public async Task<Bild?> UppdateraBildAsync(
+        string namn,
+        BildUpdate update)
     {
-        var index = _bilder.FindIndex(b => b.Id == id);
-
-        if (index < 0)
-            return null;
-
-        _bilder[index] = _bilder[index] with
-        {
-            Caption = update.Caption ?? _bilder[index].Caption,
-            Taggar = update.Taggar ?? _bilder[index].Taggar
-        };
-
-        return _bilder[index];
+        return await _blobStorageService
+            .UppdateraMetadataAsync(namn, update);
     }
 
-    // Ta bort bild
-    public async Task<bool> RaderaBildAsync(int id)
+    // DELETE
+    public async Task<bool> RaderaBildAsync(string namn)
     {
-        var bild = _bilder.FirstOrDefault(b => b.Id == id);
-
-        if (bild is null)
-            return false;
-
-        await _blobStorageService.DeleteAsync(bild.Namn);
-
-        _bilder.Remove(bild);
-
-        return true;
+        return await _blobStorageService.DeleteAsync(namn);
     }
 }
