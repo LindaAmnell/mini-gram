@@ -4,6 +4,7 @@
     string Namn,
     string Caption,
     List<string> Taggar,
-    string Url
+    string Url,
+    string TidsbegransadUrl
 );
 }

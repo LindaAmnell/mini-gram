@@ -1,5 +1,6 @@
 ﻿using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
+using Azure.Storage.Sas;
 using mini_gram.Models;
 
 namespace mini_gram.Services
@@ -12,6 +13,25 @@ namespace mini_gram.Services
         {
             _container = blobServiceClient
                 .GetBlobContainerClient("mini-gram-bilder");
+        }
+        private string SkapaSasUrl(BlobClient blobClient)
+        {
+            if (!blobClient.CanGenerateSasUri)
+            {
+                return blobClient.Uri.ToString();
+            }
+
+            var sasBuilder = new BlobSasBuilder
+            {
+                BlobContainerName = blobClient.BlobContainerName,
+                BlobName = blobClient.Name,
+                Resource = "b",
+                ExpiresOn = DateTimeOffset.UtcNow.AddMinutes(30)
+            };
+
+            sasBuilder.SetPermissions(BlobSasPermissions.Read);
+
+            return blobClient.GenerateSasUri(sasBuilder).ToString();
         }
 
         public async Task<string> UploadAsync(
@@ -66,10 +86,11 @@ namespace mini_gram.Services
                 var blobClient = _container.GetBlobClient(blob.Name);
 
                 bilder.Add(new Bild(
-                    blob.Name,
-                    caption,
-                    taggar,
-                    blobClient.Uri.ToString()
+                     blob.Name,
+                     caption,
+                     taggar,
+                     blobClient.Uri.ToString(),
+                     SkapaSasUrl(blobClient)
                 ));
             }
 
@@ -98,7 +119,8 @@ namespace mini_gram.Services
                 fileName,
                 caption,
                 taggar,
-                blobClient.Uri.ToString()
+                blobClient.Uri.ToString(),
+                SkapaSasUrl(blobClient)
             );
         }
 

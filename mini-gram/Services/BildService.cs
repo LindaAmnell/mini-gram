@@ -25,9 +25,9 @@ public class BildService
 
     // POST
     public async Task<Bild> SkapaBildAsync(
-        IFormFile fil,
-        string caption,
-        string? taggar)
+    IFormFile fil,
+    string caption,
+    string? taggar)
     {
         var taggLista = string.IsNullOrWhiteSpace(taggar)
             ? new List<string>()
@@ -38,7 +38,7 @@ public class BildService
 
         using var stream = fil.OpenReadStream();
 
-        var url = await _blobStorageService.UploadAsync(
+        await _blobStorageService.UploadAsync(
             fil.FileName,
             stream,
             fil.ContentType,
@@ -46,13 +46,9 @@ public class BildService
             taggLista
         );
 
-        return new Bild(
-       
-            fil.FileName,
-            caption,
-            taggLista,
-            url
-        );
+        var bild = await _blobStorageService.HamtaEnAsync(fil.FileName);
+
+        return bild!;
     }
 
     // PUT

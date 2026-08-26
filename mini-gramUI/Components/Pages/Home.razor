@@ -34,6 +34,7 @@ else
         {
             <div class="bildkort">
                 <img src="@bild.TidsbegransadUrl" alt="@bild.Caption" />
+                <p> hej @bild.TidsbegransadUrl</p>
                 <div class="bildinfo">
                     <p class="caption">@bild.Caption</p>
                     <p class="taggar">
@@ -96,25 +97,24 @@ else
     private async Task HamtaBilder()
     {
         laddar = true;
+        felmeddelande = "";
 
-        // TODO: Anropa GET /bilder på ditt API och fyll listan `bilder`
-        // Tips: HttpClientFactory.CreateClient("MinGramApi") ger dig en konfigurerad HttpClient
-        // Tips: GetFromJsonAsync<List<Bild>>("/bilder") deserialiserar JSON åt dig automatiskt
-        await Task.CompletedTask; // ta bort den här raden när du lägger in ditt API-anrop
+        try
+        {
+            var client = HttpClientFactory.CreateClient("MinGramApi");
 
-        // DEMO: en exempelbild så du ser hur galleriet renderas.
-        // När du implementerar GET /bilder ovan ersätts det här av riktiga bilder från API:t.
-        bilder =
-        [
-            new(
-                Namn:            "demo.jpg",
-                Caption:         "Demobild — implementera GET /bilder för att hämta riktiga",
-                Taggar:          ["demo", "placeholder"],
-                TidsbegransadUrl: "https://placehold.co/400x300?text=MinGram+Demo"
-            )
-        ];
-
-        laddar = false;
+            bilder = await client.GetFromJsonAsync<List<Bild>>("bilder")
+                     ?? new List<Bild>();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Kunde inte hämta bilder");
+            felmeddelande = "Kunde inte hämta bilder från API:t.";
+        }
+        finally
+        {
+            laddar = false;
+        }
     }
 
     private void FilVald(InputFileChangeEventArgs e)
@@ -146,11 +146,12 @@ else
 
     // Datamodell som matchar JSON-svaret från MinGram-API:t
     private record Bild(
-        string Namn,
-        string Caption,
-        List<string> Taggar,
-        string TidsbegransadUrl
-    );
+      string Namn,
+      string Caption,
+      List<string> Taggar,
+      string Url,
+      string TidsbegransadUrl
+  );
 }
 
 <style>
