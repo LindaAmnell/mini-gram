@@ -25,6 +25,9 @@ builder.Services.AddSwaggerGen();
 // CORS — hanteras primärt i Azure Portal: App Service → API → CORS
 // Lägg till din frontend-URL där, så slipper du ändra och redeploya koden.
 // Den här koden hanterar CORS lokalt under utveckling.
+
+//Hej 
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("MinGramPolicy", policy =>
