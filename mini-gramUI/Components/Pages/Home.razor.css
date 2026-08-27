@@ -1,83 +1,151 @@
-﻿.sidhuvud {
+﻿.bilder-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 1.5rem;
+    margin-bottom: 2rem;
 }
 
-h2 {
-    margin: 1.5rem 0 1rem;
-    font-size: 1.2rem;
-    color: #555;
+
+.rubrik {
+    text-align: left;
+}
+
+.bilder-header h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    color: #ffffff;
     text-transform: uppercase;
-    letter-spacing: 1px;
+    letter-spacing: 2px;
 }
 
-.laggtillknapp {
-    background: linear-gradient( 135deg, #833ab4, #fd1d1d, #fcb045 );
-    color: white;
-    border: none;
-    padding: 0.6rem 1.2rem;
-    border-radius: 6px;
-    cursor: pointer;
+.galleri-text {
+    margin: 0.4rem 0 0;
+    color: #9f9fa8;
     font-size: 0.95rem;
 }
 
+.add-btn {
+    display: flex;
+    align-items: center;
+}
+
+.laggtillknapp {
+    background: linear-gradient(135deg, #8b1111, #d62828);
+    color: white;
+    border: none;
+    padding: 0.65rem 1.1rem;
+    border-radius: 9px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: 0.2s;
+}
+
     .laggtillknapp:hover {
-        opacity: 0.9;
+        background: linear-gradient(135deg, #a41515, #ed3030);
+        transform: translateY(-2px);
     }
+
+hr {
+    border: none;
+    border-top: 1px solid #2d2d32;
+    margin: 2rem 0;
+}
 
 .bildgalleri {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    gap: 1rem;
+    gap: 1.5rem;
 }
 
 .bildkort {
-    background: white;
-    border-radius: 8px;
+    position: relative;
+    background: linear-gradient(180deg, #1b1b1f 0%, #232329 100%);
+    border: 1px solid #2f2f36;
+    border-radius: 14px;
     overflow: hidden;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
+
+    .bildkort:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 14px 28px rgba(0, 0, 0, 0.45);
+    }
 
     .bildkort img {
         width: 100%;
-        height: 200px;
+        height: 250px;
         object-fit: cover;
         display: block;
     }
 
 .bildinfo {
-    padding: 0.75rem;
+    padding: 1rem;
 }
 
 .caption {
-    font-weight: 600;
-    margin-bottom: 0.25rem;
+    font-weight: 700;
+    font-size: 1.1rem;
+    margin-bottom: 0.4rem;
+    color: #ffffff;
 }
 
 .taggar {
-    font-size: 0.8rem;
-    color: #3897f0;
-    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+    color: #e05a5a;
+    margin-bottom: 0;
 }
 
 .raderaknapp {
-    background: none;
-    border: 1px solid #e0e0e0;
-    border-radius: 4px;
-    padding: 0.3rem 0.75rem;
+    position: absolute;
+    bottom: 0.75rem;
+    right: 0.75rem;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(15, 15, 17, 0.85);
+    color: #ff5c5c;
+    border: 1px solid rgba(255, 92, 92, 0.55);
+    border-radius: 50%;
     cursor: pointer;
-    color: #e53935;
-    font-size: 0.8rem;
+    font-size: 1.5rem;
+    opacity: 0;
+    transition: 0.2s;
 }
 
-    .raderaknapp:hover {
-        background: #ffeaea;
-    }
+.bildkort:hover .raderaknapp {
+    opacity: 1;
+}
+
+.raderaknapp:hover {
+    background: #c62828;
+    color: white;
+}
 
 .fel {
-    color: #e53935;
-    margin-top: 0.75rem;
-    font-size: 0.9rem;
+    color: #ff6b6b;
+    margin-top: 0.5rem;
+    font-size: 0.95rem;
+}
+
+p {
+    color: #d7d7dc;
+}
+
+@media (max-width: 700px) {
+    .bilder-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+
+    .add-btn {
+        width: 100%;
+    }
+
+    .laggtillknapp {
+        width: 100%;
+    }
 }

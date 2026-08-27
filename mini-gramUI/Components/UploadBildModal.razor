@@ -106,7 +106,8 @@
 
         using var content = new MultipartFormDataContent();
 
-        await using var stream = valdFil.OpenReadStream();
+        await using var stream = valdFil.OpenReadStream(
+        maxAllowedSize: 10 * 1024 * 1024);
 
         var fileContent = new StreamContent(stream);
 
@@ -123,8 +124,13 @@
             felmeddelande = "Kunde inte ladda upp bilden.";
             return;
         }
+        caption = "";
+        taggar = "";
+        valdFil = null;
+        felmeddelande = "";
 
         await OnUppladdad.InvokeAsync();
         await OnStang.InvokeAsync();
+       
     }
 }

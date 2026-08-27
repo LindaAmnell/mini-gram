@@ -17,16 +17,17 @@
 @rendermode InteractiveServer
 
 
-<div class="sidhuvud">
+<div class="bilder-header">
+    <div class="rubrik">
+        <h2>Galleri</h2>
+        <p class="galleri-text">
+            Upptäck bilder från MinGram
+        </p>
+    </div>
 
-    <h2>Bilder</h2>
-
-    @* Öppnar UploadBildModal-komponenten.
-       Själva uppladdningsformuläret ligger nu i en separat komponent. *@
     <button class="laggtillknapp" @onclick="OppnaModal">
-        + Lägg till bild
+        + Ladda upp bild
     </button>
-
 </div>
 
 
@@ -63,14 +64,17 @@ else
                     @* @onclick = onClick i React. Lambda med () => gör att vi kan skicka med argument. *@
                     <button class="raderaknapp"
                             @onclick="() => RaderaBild(bild.Namn)">
-                        Ta bort
+                        🗑
                     </button>
 
                 </div>
 
             </div>
         }
+
     </div>
+
+   
 }
 
 
