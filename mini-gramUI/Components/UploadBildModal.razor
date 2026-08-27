@@ -1,0 +1,130 @@
+﻿@if (Visa)
+{
+    <div class="modal-overlay">
+
+        <div class="upload-modal">
+
+            <button class="stangknapp"
+                    @onclick="StangModal">
+                ×
+            </button>
+
+            <h2>Ladda upp bild</h2>
+
+            <div class="uppladdningsformular">
+
+                <div class="falt">
+                    <label>Bild</label>
+
+                    <InputFile OnChange="FilVald"
+                               accept="image/*" />
+                </div>
+
+                <div class="falt">
+                    <label>Caption</label>
+
+                    <input type="text"
+                           @bind="caption"
+                           placeholder="Beskriv bilden..." />
+                </div>
+
+                <div class="falt">
+                    <label>Taggar (kommaseparerade)</label>
+
+                    <input type="text"
+                           @bind="taggar"
+                           placeholder="semester, strand, sol" />
+                </div>
+
+                <button class="uppladdningsknapp"
+                        @onclick="LaddaUpp"
+                        disabled="@(valdFil == null)">
+                    Ladda upp
+                </button>
+
+                @if (!string.IsNullOrEmpty(felmeddelande))
+                {
+                    <p class="fel">@felmeddelande</p>
+                }
+
+            </div>
+
+        </div>
+
+    </div>
+}
+
+
+@code {
+
+    [Parameter]
+    public bool Visa { get; set; }
+
+
+    [Parameter]
+    public EventCallback OnStang { get; set; }
+
+
+    [Parameter]
+    public EventCallback OnUppladdad { get; set; }
+
+
+    [Inject]
+    public IHttpClientFactory HttpClientFactory { get; set; }
+        = default!;
+
+
+    private string caption = "";
+
+    private string taggar = "";
+
+    private IBrowserFile? valdFil;
+
+    private string felmeddelande = "";
+
+
+    private void FilVald(
+        InputFileChangeEventArgs e)
+    {
+        valdFil = e.File;
+
+        felmeddelande = "";
+    }
+
+
+    private async Task StangModal()
+    {
+        await OnStang.InvokeAsync();
+    }
+
+
+    private async Task LaddaUpp()
+    {
+        if (valdFil == null) return;
+
+        var client = HttpClientFactory.CreateClient("MinGramApi");
+
+        using var content = new MultipartFormDataContent();
+
+        await using var stream = valdFil.OpenReadStream();
+
+        var fileContent = new StreamContent(stream);
+
+        content.Add(fileContent, "fil", valdFil.Name);
+
+        var url =
+            $"bilder?caption={Uri.EscapeDataString(caption)}" +
+            $"&taggar={Uri.EscapeDataString(taggar)}";
+
+        var response = await client.PostAsync(url, content);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            felmeddelande = "Kunde inte ladda upp bilden.";
+            return;
+        }
+
+        await OnUppladdad.InvokeAsync();
+        await OnStang.InvokeAsync();
+    }
+}

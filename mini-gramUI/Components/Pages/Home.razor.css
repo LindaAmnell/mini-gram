@@ -1,0 +1,83 @@
+﻿.sidhuvud {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+h2 {
+    margin: 1.5rem 0 1rem;
+    font-size: 1.2rem;
+    color: #555;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.laggtillknapp {
+    background: linear-gradient( 135deg, #833ab4, #fd1d1d, #fcb045 );
+    color: white;
+    border: none;
+    padding: 0.6rem 1.2rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.95rem;
+}
+
+    .laggtillknapp:hover {
+        opacity: 0.9;
+    }
+
+.bildgalleri {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 1rem;
+}
+
+.bildkort {
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+}
+
+    .bildkort img {
+        width: 100%;
+        height: 200px;
+        object-fit: cover;
+        display: block;
+    }
+
+.bildinfo {
+    padding: 0.75rem;
+}
+
+.caption {
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+}
+
+.taggar {
+    font-size: 0.8rem;
+    color: #3897f0;
+    margin-bottom: 0.5rem;
+}
+
+.raderaknapp {
+    background: none;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    padding: 0.3rem 0.75rem;
+    cursor: pointer;
+    color: #e53935;
+    font-size: 0.8rem;
+}
+
+    .raderaknapp:hover {
+        background: #ffeaea;
+    }
+
+.fel {
+    color: #e53935;
+    margin-top: 0.75rem;
+    font-size: 0.9rem;
+}
