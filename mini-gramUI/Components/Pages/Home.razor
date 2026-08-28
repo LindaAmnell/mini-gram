@@ -10,6 +10,8 @@
 @page "/"
 @inject IHttpClientFactory HttpClientFactory
 @inject ILogger<Home> Logger
+@using mini_gramUI.Services
+@inject ApiClientService ApiClientService
 
 @* InteractiveServer = C#-koden körs på servern, UI uppdateras via WebSocket (SignalR).
    React-jämförelse: det finns ingen direkt motsvarighet — närmast är Next.js Server Components,
@@ -31,7 +33,6 @@
         }
     </div>
 
-    @* Betraktare får istället möjlighet att logga in *@
     @if (roll == "Betraktare")
     {
         <button class="loginknapp"
@@ -232,11 +233,23 @@ else
 
     private async Task RaderaBild(string namn)
     {
-        // TODO: Anropa DELETE /bilder/{namn} på ditt API
-        // Tips: Anropa HamtaBilder() efteråt så försvinner bilden från listan
+        var client = ApiClientService.SkapaClientMedRoll(roll);
 
-        felmeddelande =
-            "⚠️ Metoden är inte implementerad än — implementera DELETE /bilder/{namn}";
+        var response = await client.DeleteAsync(
+            $"bilder/{Uri.EscapeDataString(namn)}"
+        );
+
+        if (!response.IsSuccessStatusCode)
+        {
+            felmeddelande =
+                $"Kunde inte ta bort bilden. Status: {response.StatusCode}";
+
+            return;
+        }
+
+        felmeddelande = "";
+
+        await HamtaBilder();
     }
 
 

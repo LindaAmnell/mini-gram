@@ -3,6 +3,7 @@
 
 
 using mini_gramUI.Components;
+using mini_gramUI.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,6 +21,8 @@ builder.Services.AddHttpClient("MinGramApi", client =>
         ?? throw new InvalidOperationException("ApiUrl saknas i appsettings.json");
     client.BaseAddress = new Uri(apiUrl);
 });
+
+builder.Services.AddScoped<ApiClientService>();
 
 // v35 — CORS-notering:
 // När den här Blazor-appen och ditt MinGram-API körs på olika domäner i Azure

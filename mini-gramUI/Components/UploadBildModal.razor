@@ -1,4 +1,7 @@
-﻿@if (Visa)
+﻿@using mini_gramUI.Services
+@inject ApiClientService ApiClientService
+
+@if (Visa)
 {
     <div class="modal-overlay">
 
@@ -103,22 +106,12 @@
     {
         if (valdFil == null) return;
 
-        var client = HttpClientFactory.CreateClient("MinGramApi");
-        var json = $"{{\"claims\":[{{\"typ\":\"roles\",\"val\":\"{Roll}\"}}]}}";
-
-        var base64 = Convert.ToBase64String(
-            System.Text.Encoding.UTF8.GetBytes(json)
-        );
-
-        client.DefaultRequestHeaders.Add(
-            "X-MS-CLIENT-PRINCIPAL",
-            base64
-        );
+        var client = ApiClientService.SkapaClientMedRoll(Roll);
 
         using var content = new MultipartFormDataContent();
 
         await using var stream = valdFil.OpenReadStream(
-        maxAllowedSize: 10 * 1024 * 1024);
+            maxAllowedSize: 10 * 1024 * 1024);
 
         var fileContent = new StreamContent(stream);
 
@@ -132,9 +125,12 @@
 
         if (!response.IsSuccessStatusCode)
         {
-            felmeddelande = "Kunde inte ladda upp bilden.";
+            felmeddelande =
+                $"Kunde inte ladda upp bilden. Status: {response.StatusCode}";
+
             return;
         }
+
         caption = "";
         taggar = "";
         valdFil = null;
@@ -142,6 +138,5 @@
 
         await OnUppladdad.InvokeAsync();
         await OnStang.InvokeAsync();
-       
     }
 }
