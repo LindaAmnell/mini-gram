@@ -60,7 +60,8 @@
     [Parameter]
     public bool Visa { get; set; }
 
-
+    [Parameter]
+    public string Roll { get; set; } = "Betraktare";
     [Parameter]
     public EventCallback OnStang { get; set; }
 
@@ -103,6 +104,16 @@
         if (valdFil == null) return;
 
         var client = HttpClientFactory.CreateClient("MinGramApi");
+        var json = $"{{\"claims\":[{{\"typ\":\"roles\",\"val\":\"{Roll}\"}}]}}";
+
+        var base64 = Convert.ToBase64String(
+            System.Text.Encoding.UTF8.GetBytes(json)
+        );
+
+        client.DefaultRequestHeaders.Add(
+            "X-MS-CLIENT-PRINCIPAL",
+            base64
+        );
 
         using var content = new MultipartFormDataContent();
 

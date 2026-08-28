@@ -1,0 +1,48 @@
+﻿@if (Visa)
+{
+    <div class="modal-overlay">
+        <div class="login-modal">
+
+            <button class="stangknapp" @onclick="Stang">
+                ×
+            </button>
+
+            <h2>Logga in</h2>
+
+            <p>Välj roll för</p>
+
+            <button @onclick='() => Login("Fotograf")'>
+                Fotograf
+            </button>
+
+            <button @onclick='() => Login("Admin")'>
+                Admin
+            </button>
+
+        </div>
+    </div>
+}
+
+@code {
+
+    [Parameter]
+    public bool Visa { get; set; }
+
+    [Parameter]
+    public EventCallback OnStang { get; set; }
+
+    [Parameter]
+    public EventCallback<string> OnLogin { get; set; }
+
+
+    private async Task Stang()
+    {
+        await OnStang.InvokeAsync();
+    }
+
+
+    private async Task Login(string roll)
+    {
+        await OnLogin.InvokeAsync(roll);
+    }
+}

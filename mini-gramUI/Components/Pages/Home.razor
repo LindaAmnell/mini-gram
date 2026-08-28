@@ -23,12 +23,44 @@
         <p class="galleri-text">
             Upptäck bilder från MinGram
         </p>
+        @if (roll == "Betraktare")
+        {
+            <p class="login-text">
+                Logga in för att ladda upp bilder.
+            </p>
+        }
     </div>
 
-    <button class="laggtillknapp" @onclick="OppnaModal">
-        + Ladda upp bild
-    </button>
+    @* Betraktare får istället möjlighet att logga in *@
+    @if (roll == "Betraktare")
+    {
+        <button class="loginknapp"
+                @onclick="OppnaLoginModal">
+            Logga in
+        </button>
+    }
+
+
+    @if (roll == "Fotograf" || roll == "Admin")
+    {
+        <div class="inloggad-knappar">
+
+            <button class="laggtillknapp"
+                    @onclick="OppnaModal">
+                + Ladda upp bild
+            </button>
+
+            <button class="loginknapp"
+                    @onclick="LoggaUt">
+                Logga ut
+            </button>
+
+        </div>
+    }
+    
+
 </div>
+
 
 
 @if (laddar)
@@ -62,10 +94,13 @@ else
                     </p>
 
                     @* @onclick = onClick i React. Lambda med () => gör att vi kan skicka med argument. *@
-                    <button class="raderaknapp"
-                            @onclick="() => RaderaBild(bild.Namn)">
-                        🗑
-                    </button>
+                    @if (roll == "Admin")
+                    {
+                        <button class="raderaknapp"
+                                @onclick="() => RaderaBild(bild.Namn)">
+                            🗑
+                        </button>
+                    }
 
                 </div>
 
@@ -90,8 +125,17 @@ else
    OnUppladdad körs när en bild har laddats upp,
    då hämtar vi bilderna igen så galleriet uppdateras. *@
 <UploadBildModal Visa="@visaModal"
+                 Roll="@roll"
                  OnStang="StangModal"
                  OnUppladdad="BildUppladdad" />
+
+@* LoginModal är popupen som används för vår lokala demo-login.
+   I den riktiga lösningen hade inloggningen skötts av Microsoft Entra ID. *@
+
+<LoginModal Visa="@visaLoginModal"
+            OnStang="StangLoginModal"
+            OnLogin="LoggaIn" />
+
 
 
 
@@ -100,18 +144,33 @@ else
     private List<Bild> bilder = new();
 
     private bool laddar = true;
-
-    // Styr om UploadBildModal ska visas eller inte
     private bool visaModal = false;
+    private bool visaLoginModal = false;
 
     private string felmeddelande = "";
+    private string roll = "Betraktare";
 
+    private void LoggaUt()
+    {
+        roll = "Betraktare";
+    }
 
     // OnInitializedAsync = useEffect(() => { fetchData() }, []) i React
     // Körs en gång när komponenten mountas. Asynkron, så du kan awaita direkt.
     protected override async Task OnInitializedAsync()
     {
+        await HamtaRoll();
         await HamtaBilder();
+    }
+
+    private async Task HamtaRoll()
+    {
+        var client = HttpClientFactory.CreateClient("MinGramApi");
+
+        var response =
+            await client.GetFromJsonAsync<RollResponse>("roll");
+
+        roll = response?.Roll ?? "Betraktare";
     }
 
 
@@ -140,23 +199,29 @@ else
         }
     }
 
-
-    // Öppnar popupen för uppladdning
     private void OppnaModal()
     {
         visaModal = true;
     }
-
-
-    // Stänger popupen
     private void StangModal()
     {
         visaModal = false;
     }
+    private void OppnaLoginModal()
+    {
+        visaLoginModal = true;
+    }
+    private void StangLoginModal()
+    {
+        visaLoginModal = false;
+    }
 
+    private void LoggaIn(string valdRoll)
+    {
+        roll = valdRoll;
+        visaLoginModal = false;
+    }
 
-    // Körs från UploadBildModal när en bild har laddats upp.
-    // Då stänger vi popupen och hämtar listan igen.
     private async Task BildUppladdad()
     {
         visaModal = false;
@@ -183,4 +248,9 @@ else
         string Url,
         string TidsbegransadUrl
     );
+
+    private record RollResponse(
+    string Roll
+);
+
 }

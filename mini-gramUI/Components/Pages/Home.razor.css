@@ -20,8 +20,13 @@
 
 .galleri-text {
     margin: 0.4rem 0 0;
-    color: #9f9fa8;
+    color: #c7c7cc;
     font-size: 0.95rem;
+}
+.login-text {
+    color: #9f9fa8;
+    margin-top: 0.5rem;
+    font-size: 0.9rem;
 }
 
 .add-btn {
@@ -36,6 +41,7 @@
     padding: 0.65rem 1.1rem;
     border-radius: 9px;
     cursor: pointer;
+    font-family: "Rajdhani", sans-serif;
     font-weight: 600;
     transition: 0.2s;
 }
@@ -43,6 +49,27 @@
     .laggtillknapp:hover {
         background: linear-gradient(135deg, #a41515, #ed3030);
         transform: translateY(-2px);
+    }
+
+.loginknapp {
+    background: transparent;
+    color: white;
+    border: 1px solid #d62828;
+    border-radius: 8px;
+    padding: 0.65rem 1.2rem;
+    font-family: "Rajdhani", sans-serif;
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+    .loginknapp:hover {
+        background: linear-gradient(135deg, #8b1111, #d62828);
+        border-color: #d62828;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 18px rgba(214, 40, 40, 0.25);
     }
 
 hr {
