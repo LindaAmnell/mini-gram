@@ -67,16 +67,8 @@
     public string Roll { get; set; } = "Betraktare";
     [Parameter]
     public EventCallback OnStang { get; set; }
-
-
     [Parameter]
     public EventCallback OnUppladdad { get; set; }
-
-
-    [Inject]
-    public IHttpClientFactory HttpClientFactory { get; set; }
-        = default!;
-
 
     private string caption = "";
 
@@ -136,7 +128,7 @@
         valdFil = null;
         felmeddelande = "";
 
+        
         await OnUppladdad.InvokeAsync();
-        await OnStang.InvokeAsync();
     }
 }

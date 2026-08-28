@@ -38,15 +38,15 @@ public class BildService
 
         using var stream = fil.OpenReadStream();
 
-        await _blobStorageService.UploadAsync(
-            fil.FileName,
-            stream,
-            fil.ContentType,
-            caption,
-            taggLista
+        var uniqueFileName = await _blobStorageService.UploadAsync(
+        fil.FileName,
+        stream,
+        fil.ContentType,
+        caption,
+        taggLista
         );
 
-        var bild = await _blobStorageService.HamtaEnAsync(fil.FileName);
+        var bild = await _blobStorageService.HamtaEnAsync(uniqueFileName);
 
         return bild!;
     }

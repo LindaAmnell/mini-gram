@@ -62,7 +62,7 @@ namespace mini_gram.Services
 
             await blobClient.UploadAsync(stream, options);
 
-            return blobClient.Uri.ToString();
+            return uniqueFileName;
         }
 
         public async Task<List<Bild>> HamtaAllaAsync()
