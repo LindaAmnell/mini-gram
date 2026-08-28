@@ -185,6 +185,14 @@ app.MapDelete("/bilder/{namn}", async (
 .WithName("RaderaBild")
 .WithSummary("Radera bild — kräver Admin");
 
+app.MapGet("/roll", (HttpRequest req) =>
+{
+    var roll = HamtaRoll(req);
+
+    return Results.Ok(new { roll });
+})
+.WithName("HamtaRoll")
+.WithSummary("Hämtar aktuell användarroll");
 
 app.Run();
 
@@ -197,7 +205,7 @@ app.Run();
 string HamtaRoll(HttpRequest request)
 {
     var header = request.Headers["X-MS-CLIENT-PRINCIPAL"].FirstOrDefault();
-    if (string.IsNullOrEmpty(header)) return "Admin"; // lokal dev
+    if (string.IsNullOrEmpty(header)) return "Betraktare"; // lokal dev
 
     try
     {
@@ -213,6 +221,7 @@ string HamtaRoll(HttpRequest request)
 
     return "Betraktare"; // okänd roll → minsta behörighet
 }
+
 
 // Kontrollerar om en roll har tillräcklig behörighet.
 // Hierarki: Betraktare < Fotograf < Admin
