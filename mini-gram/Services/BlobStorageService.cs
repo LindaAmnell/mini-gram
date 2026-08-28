@@ -43,7 +43,8 @@ namespace mini_gram.Services
         {
             await _container.CreateIfNotExistsAsync();
 
-            var blobClient = _container.GetBlobClient(fileName);
+            var uniqueFileName = $"{Guid.NewGuid()}-{fileName}";
+            var blobClient = _container.GetBlobClient(uniqueFileName);
 
             var options = new BlobUploadOptions
             {

@@ -91,7 +91,7 @@ else
                     </p>
 
                     <p class="taggar">
-                        @string.Join(" · ", bild.Taggar.Select(t => $"#{t}"))
+                        @string.Join(" ", bild.Taggar.Select(t => $"#{t}"))
                     </p>
 
                     @* @onclick = onClick i React. Lambda med () => gör att vi kan skicka med argument. *@
