@@ -1,21 +1,11 @@
-﻿@* Home.razor — startsidan för MinGram
-   En Blazor-komponent: HTML, C# och CSS i samma fil.
-
-   Ny på Blazor? Läs igenom introduktionen först:
-   → 35_natverk_sakerhet/notes/blazor_intro.md
-
-   Din uppgift är att implementera de metoder som är markerade med TODO.
-   Strukturen är klar — du fyller i HTTP-anropen mot ditt eget API. *@
-
+﻿
 @page "/"
 @inject IHttpClientFactory HttpClientFactory
 @inject ILogger<Home> Logger
 @using mini_gramUI.Services
 @inject ApiClientService ApiClientService
 
-@* InteractiveServer = C#-koden körs på servern, UI uppdateras via WebSocket (SignalR).
-   React-jämförelse: det finns ingen direkt motsvarighet — närmast är Next.js Server Components,
-   men Blazor håller en live-anslutning öppen till servern istället för att rendera en gång. *@
+
 @rendermode InteractiveServer
 
 
@@ -75,8 +65,6 @@ else if (bilder.Count == 0)
 else
 {
     <div class="bildgalleri">
-
-        @* @foreach loopar och renderar ett element per item — som .map() i React/JSX *@
         @foreach (var bild in bilder)
         {
             <div class="bildkort">
@@ -94,7 +82,6 @@ else
                         @string.Join(" ", bild.Taggar.Select(t => $"#{t}"))
                     </p>
 
-                    @* @onclick = onClick i React. Lambda med () => gör att vi kan skicka med argument. *@
                     @if (roll == "Admin")
                     {
                         <button class="raderaknapp"
@@ -113,32 +100,19 @@ else
    
 }
 
-
 @if (!string.IsNullOrEmpty(felmeddelande))
 {
     <p class="fel">@felmeddelande</p>
 }
 
-
-@* UploadBildModal är en separat Blazor-komponent.
-   Visa styr om popupen är öppen.
-   OnStang körs när användaren stänger popupen.
-   OnUppladdad körs när en bild har laddats upp,
-   då hämtar vi bilderna igen så galleriet uppdateras. *@
 <UploadBildModal Visa="@visaModal"
                  Roll="@roll"
                  OnStang="StangModal"
                  OnUppladdad="BildUppladdad" />
 
-@* LoginModal är popupen som används för vår lokala demo-login.
-   I den riktiga lösningen hade inloggningen skötts av Microsoft Entra ID. *@
-
 <LoginModal Visa="@visaLoginModal"
             OnStang="StangLoginModal"
             OnLogin="LoggaIn" />
-
-
-
 
 @code {
 
@@ -156,8 +130,6 @@ else
         roll = "Betraktare";
     }
 
-    // OnInitializedAsync = useEffect(() => { fetchData() }, []) i React
-    // Körs en gång när komponenten mountas. Asynkron, så du kan awaita direkt.
     protected override async Task OnInitializedAsync()
     {
         await HamtaRoll();
@@ -251,8 +223,6 @@ else
         await HamtaBilder();
     }
 
-
-    // Datamodell som matchar JSON-svaret från MinGram-API:t
     private record Bild(
         string Namn,
         string Caption,

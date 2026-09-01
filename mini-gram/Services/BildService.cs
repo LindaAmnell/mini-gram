@@ -11,19 +11,17 @@ public class BildService
         _blobStorageService = blobStorageService;
     }
 
-    // GET alla
     public async Task<List<Bild>> HamtaAllaAsync()
     {
         return await _blobStorageService.HamtaAllaAsync();
     }
 
-    // GET en
+
     public async Task<Bild?> HamtaEnAsync(string namn)
     {
         return await _blobStorageService.HamtaEnAsync(namn);
     }
 
-    // POST
     public async Task<Bild> SkapaBildAsync(
     IFormFile fil,
     string caption,
@@ -50,8 +48,6 @@ public class BildService
 
         return bild!;
     }
-
-    // PUT
     public async Task<Bild?> UppdateraBildAsync(
         string namn,
         BildUpdate update)
@@ -59,8 +55,6 @@ public class BildService
         return await _blobStorageService
             .UppdateraMetadataAsync(namn, update);
     }
-
-    // DELETE
     public async Task<bool> RaderaBildAsync(string namn)
     {
         return await _blobStorageService.DeleteAsync(namn);
